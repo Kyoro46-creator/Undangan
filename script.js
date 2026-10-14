@@ -89,7 +89,39 @@ async function insertPublicRow(table, row) {
     throw new Error("Data belum berhasil disimpan. Silakan coba lagi beberapa saat.");
   }
 }
+async function getInvitationId() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("invitation");
 
+  if (!slug) {
+    throw new Error("Kode undangan tidak ditemukan di URL.");
+  }
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/rpc/get_public_invitation_id`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+      },
+      body: JSON.stringify({ p_slug: slug })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Gagal memeriksa kode undangan.");
+  }
+
+  const invitationId = await response.json();
+
+  if (!invitationId) {
+    throw new Error("Undangan tidak ditemukan atau tidak aktif.");
+  }
+
+  return invitationId;
+}
 // RSVP: maps HTML form fields to the rsvps table column names.
 document.getElementById("rsvpForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -110,17 +142,45 @@ document.getElementById("rsvpForm")?.addEventListener("submit", async (event) =>
     setFormNote(note, "Periksa kembali isian formulir, lalu coba lagi.", true);
     return;
   }
-
   if (button) button.disabled = true;
-  setFormNote(note, "Mengirim konfirmasi...");
+  setFormNote(note, "Mengirim konfirmasi...", false);
+
   try {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("invitation");
+
+    if (!slug) {
+      throw new Error("Kode undangan tidak ditemukan di URL.");
+    }
+
+    const { data: invitationId, error: invitationError } =
+      await supabase.rpc("get_public_invitation_id", {
+        p_slug: slug
+      });
+
+    if (invitationError) throw invitationError;
+    if (!invitationId) {
+      throw new Error("Undangan tidak ditemukan atau tidak aktif.");
+    }
+
+    const invitationId = await getInvitationId();
+
     await insertPublicRow("rsvps", {
+      invitation_id: invitationId,
       guest_name: guestName,
       attendance,
       guest_count: guestCount,
       message: message || null
     });
+
     form.reset();
+    setFormNote(note, "Terima kasih! Konfirmasi kehadiran Anda berhasil dikirim.", false);
+  } catch (error) {
+    setFormNote(note, error.message || "Konfirmasi belum berhasil dikirim.", true);
+  } finally {
+    if (button) button.disabled = false;
+  }
+  
     setFormNote(note, "Terima kasih! Konfirmasi kehadiran Anda berhasil dikirim.");
   } catch (error) {
     setFormNote(note, error.message || "Konfirmasi belum berhasil dikirim.", true);
