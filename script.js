@@ -1,6 +1,6 @@
 // Konfigurasi Supabase untuk website undangan.
-// Ganti kedua nilai di bawah dengan Project URL dan Publishable key milik proyek Nanda's Company.
-// Gunakan publishable key (sb_publishable_...), JANGAN gunakan secret/service_role key.
+// Gunakan Project URL dan Publishable key milik proyek undangan.
+// Jangan pernah menggunakan secret/service_role key di website publik.
 const SUPABASE_URL = "https://ldjfupxunudonkftptab.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy";
 
@@ -16,11 +16,13 @@ function updateCountdown() {
     minutes: Math.floor((safeDistance / (1000 * 60)) % 60),
     seconds: Math.floor((safeDistance / 1000) % 60)
   };
+
   for (const [id, value] of Object.entries(values)) {
     const element = document.getElementById(id);
     if (element) element.textContent = String(value).padStart(2, "0");
   }
 }
+
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
@@ -77,9 +79,9 @@ async function insertPublicRow(table, row) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "apikey": SUPABASE_PUBLISHABLE_KEY,
-      "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-      "Prefer": "return=minimal"
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      Prefer: "return=minimal"
     },
     body: JSON.stringify(row)
   });
@@ -89,16 +91,20 @@ async function insertPublicRow(table, row) {
     throw new Error("Data belum berhasil disimpan. Silakan coba lagi beberapa saat.");
   }
 }
+
 async function getInvitationId() {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Konfigurasi Supabase belum diisi.");
+  }
+
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("invitation");
-
   if (!slug) {
     throw new Error("Kode undangan tidak ditemukan di URL.");
   }
 
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/rpc/get_public_invitation_id`,
+    `${SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/rpc/get_public_invitation_id`,
     {
       method: "POST",
       headers: {
@@ -115,14 +121,14 @@ async function getInvitationId() {
   }
 
   const invitationId = await response.json();
-
   if (!invitationId) {
     throw new Error("Undangan tidak ditemukan atau tidak aktif.");
   }
 
   return invitationId;
 }
-// RSVP: maps HTML form fields to the rsvps table column names.
+
+// RSVP: menyimpan konfirmasi dan menghubungkannya ke undangan yang sedang dibuka.
 document.getElementById("rsvpForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -142,19 +148,12 @@ document.getElementById("rsvpForm")?.addEventListener("submit", async (event) =>
     setFormNote(note, "Periksa kembali isian formulir, lalu coba lagi.", true);
     return;
   }
+
   if (button) button.disabled = true;
   setFormNote(note, "Mengirim konfirmasi...", false);
 
   try {
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("invitation");
-
-    if (!slug) {
-      throw new Error("Kode undangan tidak ditemukan di URL.");
-    }
-    
     const invitationId = await getInvitationId();
-
     await insertPublicRow("rsvps", {
       invitation_id: invitationId,
       guest_name: guestName,
@@ -170,17 +169,10 @@ document.getElementById("rsvpForm")?.addEventListener("submit", async (event) =>
   } finally {
     if (button) button.disabled = false;
   }
-  
-    setFormNote(note, "Terima kasih! Konfirmasi kehadiran Anda berhasil dikirim.");
-  } catch (error) {
-    setFormNote(note, error.message || "Konfirmasi belum berhasil dikirim.", true);
-  } finally {
-    if (button) button.disabled = false;
-  }
 });
 
-// Guestbook: stores each guest message in the separate guestbook table.
-// This template intentionally does not read/display guestbook rows publicly.
+// Guestbook: menyimpan ucapan dan menghubungkannya ke undangan yang sedang dibuka.
+// Template ini tidak membaca atau menampilkan entri buku tamu secara publik.
 document.getElementById("guestbookForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -197,17 +189,22 @@ document.getElementById("guestbookForm")?.addEventListener("submit", async (even
   }
 
   if (button) button.disabled = true;
-  setFormNote(note, "Mengirim ucapan...");
+  setFormNote(note, "Mengirim ucapan...", false);
+
   try {
+    const invitationId = await getInvitationId();
     await insertPublicRow("guestbook", {
+      invitation_id: invitationId,
       guest_name: guestName,
       message
     });
+
     form.reset();
-    setFormNote(note, "Terima kasih! Ucapan dan doa Anda berhasil dikirim.");
+    setFormNote(note, "Terima kasih! Ucapan dan doa Anda berhasil dikirim.", false);
   } catch (error) {
     setFormNote(note, error.message || "Ucapan belum berhasil dikirim.", true);
   } finally {
     if (button) button.disabled = false;
   }
 });
+
