@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f2ea">
+  <meta name="description" content="Undangan pernikahan digital yang elegan dan personal.">
+  <title>Undangan Pernikahan | Nama Mempelai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <audio id="weddingMusic" loop preload="none">
+    <!-- Ganti music.mp3 dengan file musik milik Anda yang boleh digunakan. -->
+    <source src="assets/music.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="cover" id="cover">
+    <div class="cover-card">
+      <p class="eyebrow">THE WEDDING OF</p>
+      <h1>Alya <span>&</span> Arkan</h1>
+      <p class="cover-date">Minggu, 20 Desember 2026</p>
+      <p class="cover-to">Kepada Yth. Bapak/Ibu/Saudara/i</p>
+      <button class="button button-dark" id="openInvitation">Buka Undangan <span aria-hidden="true">↗</span></button>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#home">A<span>&</span>A</a>
+    <nav aria-label="Navigasi utama">
+      <a href="#couple">Mempelai</a>
+      <a href="#event">Acara</a>
+      <a href="#gallery">Galeri</a>
+      <a href="#rsvp">RSVP</a>
+    </nav>
+    <button class="music-toggle" id="musicToggle" aria-label="Putar atau hentikan musik">♫ <span>Musik</span></button>
+  </header>
+
+  <main id="home">
+    <section class="hero section-wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">SAVE THE DATE · 20.12.2026</p>
+        <h2>Dua hati,<br><em>satu perjalanan.</em></h2>
+        <p class="lead">Dengan penuh rasa syukur, kami mengundang Anda untuk menjadi bagian dari hari istimewa kami.</p>
+        <a class="button button-dark" href="#event">Lihat Detail Acara <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-photo">
+        <!-- Ganti URL gambar dengan foto pasangan milik Anda. -->
+        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=85" alt="Suasana pernikahan yang romantis">
+        <div class="photo-caption">Alya & Arkan · 2026</div>
+      </div>
+      <div class="hero-flower" aria-hidden="true">✳</div>
+    </section>
+
+    <section class="intro section-wrap" id="couple">
+      <p class="eyebrow">ASSALAMUALAIKUM WARAHMATULLAHI WABARAKATUH</p>
+      <h2>Dengan memohon rahmat dan ridha Allah SWT</h2>
+      <p class="body-copy">Kami bermaksud menyelenggarakan pernikahan putra-putri kami. Merupakan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.</p>
+      <div class="couple-grid">
+        <article class="person">
+          <div class="initial">A</div>
+          <h3>Alya Putri</h3>
+          <p>Putri dari Bapak Nama Ayah & Ibu Nama Ibu</p>
+        </article>
+        <div class="ampersand">&</div>
+        <article class="person">
+          <div class="initial">A</div>
+          <h3>Arkan Pratama</h3>
+          <p>Putra dari Bapak Nama Ayah & Ibu Nama Ibu</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="event-section" id="event">
+      <div class="section-wrap event-inner">
+        <p class="eyebrow">SAVE THE DATE</p>
+        <h2>Hari bahagia kami</h2>
+        <p class="body-copy">Dengan segala kerendahan hati, kami menantikan kehadiran dan doa restu Anda.</p>
+        <div class="countdown" aria-label="Hitung mundur menuju pernikahan">
+          <div><strong id="days">--</strong><span>Hari</span></div>
+          <div><strong id="hours">--</strong><span>Jam</span></div>
+          <div><strong id="minutes">--</strong><span>Menit</span></div>
+          <div><strong id="seconds">--</strong><span>Detik</span></div>
+        </div>
+        <div class="event-grid">
+          <article class="event-card">
+            <span class="event-icon">01</span>
+            <h3>Akad Nikah</h3>
+            <p>Minggu, 20 Desember 2026</p>
+            <p>08.00 WIB – selesai</p>
+            <p>Gedung Contoh, Tanjung Selor</p>
+          </article>
+          <article class="event-card">
+            <span class="event-icon">02</span>
+            <h3>Resepsi</h3>
+            <p>Minggu, 20 Desember 2026</p>
+            <p>11.00–14.00 WIB</p>
+            <p>Gedung Contoh, Tanjung Selor</p>
+          </article>
+        </div>
+        <a class="button button-outline" href="https://maps.google.com/?q=Tanjung+Selor" target="_blank" rel="noopener">Buka Google Maps ↗</a>
+      </div>
+    </section>
+
+    <section class="gallery-section section-wrap" id="gallery">
+      <p class="eyebrow">OUR MOMENTS</p>
+      <h2>Sepenggal cerita</h2>
+      <p class="body-copy">Momen kecil yang membawa kami sampai ke hari ini.</p>
+      <div class="gallery-grid">
+        <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85" alt="Momen pernikahan 1" loading="lazy">
+        <img src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=85" alt="Momen pernikahan 2" loading="lazy">
+        <img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=85" alt="Momen pernikahan 3" loading="lazy">
+      </div>
+      <div class="video-box">
+        <p class="eyebrow">WEDDING FILM</p>
+        <p>Tambahkan video prewedding atau tautan video Anda di sini.</p>
+        <!-- Ganti VIDEO_ID dengan ID video YouTube milik pasangan. -->
+        <a href="https://www.youtube.com/" target="_blank" rel="noopener">Tonton video ↗</a>
+      </div>
+    </section>
+
+    <section class="rsvp-section" id="rsvp">
+      <div class="section-wrap rsvp-inner">
+        <p class="eyebrow">KINDLY RSVP</p>
+        <h2>Konfirmasi kehadiran</h2>
+        <p class="body-copy">Mohon bantu kami mempersiapkan acara dengan mengisi konfirmasi berikut.</p>
+        <form id="rsvpForm" class="rsvp-form">
+          <label>Nama lengkap<input name="name" required maxlength="80" placeholder="Nama Anda"></label>
+          <label>Konfirmasi kehadiran
+            <select name="attendance" required>
+              <option value="">Pilih jawaban</option>
+              <option value="Hadir">Insyaallah hadir</option>
+              <option value="Tidak hadir">Mohon maaf, belum bisa hadir</option>
+            </select>
+          </label>
+          <label>Jumlah tamu
+            <select name="guests">
+              <option value="1">1 orang</option><option value="2">2 orang</option><option value="3">3 orang</option><option value="4">4 orang</option>
+            </select>
+          </label>
+          <label>Ucapan dan doa<textarea name="message" rows="4" maxlength="500" placeholder="Tuliskan doa terbaik Anda (opsional)"></textarea></label>
+          <button class="button button-dark" type="submit">Kirim Konfirmasi</button>
+          <p class="form-note" id="formNote" role="status">Mode demo: formulir belum terhubung ke database, jadi jawaban belum tersimpan atau terkirim.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Terima kasih atas doa dan kehadiran Anda.</p>
+    <p class="footer-names">Alya <span>&</span> Arkan</p>
+    <small>Undangan digital · Dibuat dengan penuh cinta</small>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
