@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Undangan</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f3ed;
+      color: #292820;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .panel {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      border: 1px solid #e7dfd1;
+      margin-bottom: 20px;
+    }
+
+    h1, h2 { margin-top: 0; }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input {
+      border: 1px solid #d5cbbc;
+      background: #fff;
+    }
+
+    button {
+      border: 0;
+      background: #292820;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .secondary {
+      background: #e9e1d4;
+      color: #292820;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f4efe6;
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .invitation {
+      padding: 15px 0;
+      border-bottom: 1px solid #eee5d9;
+    }
+
+    .invitation:last-child { border-bottom: 0; }
+
+    .muted {
+      color: #756f65;
+      font-size: 14px;
+    }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <section class="panel">
+      <h1>Wedding Dashboard</h1>
+      <p class="muted">Panel pengelola undangan pernikahan</p>
+      <div id="status" class="status" role="status">
+        Menghubungkan ke Supabase...
+      </div>
+    </section>
+
+    <section id="loginPanel" class="panel" hidden>
+      <h2>Login Admin</h2>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username"
+               placeholder="Email admin" required>
+
+        <label for="password">Password</label>
+        <input id="password" type="password"
+               autocomplete="current-password"
+               placeholder="Password" required>
+
+        <button id="loginButton" type="submit">Login</button>
+      </form>
+    </section>
+
+    <section id="dashboard" hidden>
+      <section class="panel">
+        <h2>Buat Undangan Baru</h2>
+
+        <form id="invitationForm">
+          <label for="coupleNames">Nama pasangan</label>
+          <input id="coupleNames" maxlength="120"
+                 placeholder="Contoh: Andi & Sari" required>
+
+          <label for="slug">Kode URL undangan</label>
+          <input id="slug" maxlength="80"
+                 pattern="[a-z0-9-]{3,80}"
+                 placeholder="contoh: andi-sari" required>
+
+          <label for="weddingDate">Tanggal dan waktu acara</label>
+          <input id="weddingDate" type="datetime-local">
+
+          <button id="createButton" type="submit">
+            Buat Undangan
+          </button>
+        </form>
+
+        <p class="muted">
+          Pembuatan data di sini belum otomatis membuat desain undangan
+          khusus untuk setiap pasangan.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Daftar Undangan Saya</h2>
+        <button id="refreshButton" class="secondary" type="button">
+          Muat Ulang
+        </button>
+        <div id="invitationList">Memuat daftar undangan...</div>
+      </section>
+
+      <section class="panel">
+        <button id="logoutButton" class="secondary" type="button">
+          Logout
+        </button>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // Isi dengan URL proyek undangan dan publishable key yang benar.
+    // Jangan pernah menggunakan secret key atau service_role key di browser.
+    const SUPABASE_URL = "https://ldjfupxunudonkftptab.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy";
+
+    const statusBox = document.getElementById("status");
+    const loginPanel = document.getElementById("loginPanel");
+    const dashboard = document.getElementById("dashboard");
+    const invitationList = document.getElementById("invitationList");
+
+    let db = null;
+    let currentUser = null;
+
+    function showStatus(message) {
+      statusBox.textContent = message;
+    }
+
+    function setButtonBusy(button, busy, text) {
+      button.disabled = busy;
+      if (busy) {
+        button.dataset.originalText = button.textContent;
+        button.textContent = text;
+      } else if (button.dataset.originalText) {
+        button.textContent = button.dataset.originalText;
+      }
+    }
+
+    function showLogin() {
+      currentUser = null;
+      loginPanel.hidden = false;
+      dashboard.hidden = true;
+    }
+
+    function showDashboard(user) {
+      currentUser = user;
+      loginPanel.hidden = true;
+      dashboard.hidden = false;
+      showStatus("Login sebagai " + user.email);
+    }
+
+    async function loadInvitations() {
+      if (!currentUser) return;
+
+      invitationList.textContent = "Memuat daftar undangan...";
+
+      const { data, error } = await db
+        .from("invitations")
+        .select("id, slug, couple_names, wedding_date, is_active, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        invitationList.textContent =
+          "Gagal memuat undangan: " + error.message;
+        return;
+      }
+
+      invitationList.replaceChildren();
+
+      if (!data || data.length === 0) {
+        invitationList.textContent = "Belum ada undangan. Buat undangan pertama di atas.";
+        return;
+      }
+
+      data.forEach((item) => {
+        const article = document.createElement("article");
+        article.className = "invitation";
+
+        const title = document.createElement("h3");
+        title.textContent = item.couple_names;
+
+        const slug = document.createElement("p");
+        slug.textContent = "Kode: " + item.slug;
+
+        const date = document.createElement("p");
+        date.className = "muted";
+        date.textContent = item.wedding_date
+          ? "Tanggal acara: " + new Date(item.wedding_date).toLocaleString("id-ID")
+          : "Tanggal acara belum ditentukan";
+
+        const state = document.createElement("p");
+        state.className = "muted";
+        state.textContent = item.is_active ? "Status: Aktif" : "Status: Nonaktif";
+
+        article.append(title, slug, date, state);
+        invitationList.appendChild(article);
+      });
+    }
+
+    async function initialize() {
+      if (
+        SUPABASE_URL.includes("GANTI_DENGAN") ||
+        SUPABASE_PUBLISHABLE_KEY.includes("GANTI_DENGAN")
+      ) {
+        showStatus("Isi SUPABASE_URL dan SUPABASE_PUBLISHABLE_KEY terlebih dahulu.");
+        loginPanel.hidden = true;
+        return;
+      }
+
+      if (!window.supabase) {
+        showStatus("Library Supabase gagal dimuat. Periksa koneksi internet.");
+        return;
+      }
+
+      db = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+
+      const { data, error } = await db.auth.getSession();
+
+      if (error) {
+        showStatus("Gagal memeriksa sesi login: " + error.message);
+        return;
+      }
+
+      if (data.session) {
+        showDashboard(data.session.user);
+        await loadInvitations();
+      } else {
+        showStatus("Silakan login untuk mengelola undangan.");
+        showLogin();
+      }
+
+      db.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          showDashboard(session.user);
+          loadInvitations();
+        } else {
+          showLogin();
+          showStatus("Kamu sudah logout.");
+        }
+      });
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!db) return;
+
+      const button = document.getElementById("loginButton");
+      setButtonBusy(button, true, "Sedang login...");
+
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        const { error } = await db.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          showStatus("Login gagal: " + error.message);
+        } else {
+          document.getElementById("password").value = "";
+          showStatus("Login berhasil.");
+        }
+      } finally {
+        setButtonBusy(button, false);
+      }
+    });
+
+    document.getElementById("invitationForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!db || !currentUser) return;
+
+      const button = document.getElementById("createButton");
+      setButtonBusy(button, true, "Menyimpan...");
+
+      try {
+        const coupleNames = document.getElementById("coupleNames").value.trim();
+        const slug = document.getElementById("slug").value.trim();
+        const dateValue = document.getElementById("weddingDate").value;
+
+        const record = {
+          owner_id: currentUser.id,
+          couple_names: coupleNames,
+          slug: slug,
+          wedding_date: dateValue
+            ? new Date(dateValue).toISOString()
+            : null
+        };
+
+        const { error } = await db.from("invitations").insert(record);
+
+        if (error) {
+          showStatus("Undangan gagal dibuat: " + error.message);
+          return;
+        }
+
+        showStatus("Data undangan berhasil dibuat.");
+        document.getElementById("invitationForm").reset();
+        await loadInvitations();
+      } finally {
+        setButtonBusy(button, false);
+      }
+    });
+
+    document.getElementById("refreshButton").addEventListener("click", loadInvitations);
+
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+      if (!db) return;
+
+      const { error } = await db.auth.signOut();
+
+      if (error) {
+        showStatus("Logout gagal: " + error.message);
+      }
+    });
+
+    initialize().catch((error) => {
+      showStatus("Terjadi kesalahan: " + error.message);
+    });
+  </script>
+</body>
+</html>
