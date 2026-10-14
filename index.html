@@ -34,6 +34,7 @@
       <a href="#event">Acara</a>
       <a href="#gallery">Galeri</a>
       <a href="#rsvp">RSVP</a>
+      <a href="#guestbook">Buku Tamu</a>
     </nav>
     <button class="music-toggle" id="musicToggle" aria-label="Putar atau hentikan musik">♫ <span>Musik</span></button>
   </header>
@@ -143,6 +144,24 @@
           <label>Ucapan dan doa<textarea name="message" rows="4" maxlength="500" placeholder="Tuliskan doa terbaik Anda (opsional)"></textarea></label>
           <button class="button button-dark" type="submit">Kirim Konfirmasi</button>
           <p class="form-note" id="formNote" role="status">Mode demo: formulir belum terhubung ke database, jadi jawaban belum tersimpan atau terkirim.</p>
+        </form>
+      </div>
+    </section>
+
+    <section class="rsvp-section" id="guestbook">
+      <div class="section-wrap rsvp-inner">
+        <p class="eyebrow">GUESTBOOK</p>
+        <h2>Buku tamu</h2>
+        <p class="body-copy">Tinggalkan ucapan dan doa terbaik untuk kedua mempelai.</p>
+        <form id="guestbookForm" class="rsvp-form">
+          <label>Nama lengkap
+            <input name="name" required maxlength="80" placeholder="Nama Anda">
+          </label>
+          <label>Ucapan dan doa
+            <textarea name="message" required rows="4" maxlength="500" placeholder="Tuliskan ucapan dan doa Anda"></textarea>
+          </label>
+          <button class="button button-dark" type="submit">Kirim Ucapan</button>
+          <p class="form-note" id="guestbookNote" role="status">Ucapan akan disimpan setelah formulir terhubung ke database.</p>
         </form>
       </div>
     </section>

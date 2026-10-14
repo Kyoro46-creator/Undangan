@@ -1,3 +1,10 @@
+// Konfigurasi Supabase untuk website undangan.
+// Ganti kedua nilai di bawah dengan Project URL dan Publishable key milik proyek Nanda's Company.
+// Gunakan publishable key (sb_publishable_...), JANGAN gunakan secret/service_role key.
+const SUPABASE_URL = "https://ldjfupxunudonkftptab.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy
+";
+
 // Ubah tanggal acara di bawah ini sesuai tanggal pernikahan.
 const weddingDate = new Date("2026-12-20T08:00:00+07:00").getTime();
 
@@ -48,12 +55,110 @@ musicToggle?.addEventListener("click", async () => {
   }
 });
 
-// Form ini belum menyimpan data. Pada tahap berikutnya, hubungkan ke Supabase
-// atau layanan backend yang aman sebelum dipakai untuk undangan sungguhan.
-document.getElementById("rsvpForm")?.addEventListener("submit", (event) => {
+function isSupabaseConfigured() {
+  return SUPABASE_URL.startsWith("https://") &&
+    !SUPABASE_URL.includes("GANTI_DENGAN") &&
+    SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_") &&
+    !SUPABASE_PUBLISHABLE_KEY.includes("GANTI_DENGAN");
+}
+
+function setFormNote(element, message, isError = false) {
+  if (!element) return;
+  element.textContent = message;
+  element.setAttribute("aria-live", "polite");
+  element.style.color = isError ? "#a12626" : "";
+}
+
+async function insertPublicRow(table, row) {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Konfigurasi Supabase belum diisi. Hubungi pengelola undangan.");
+  }
+
+  const response = await fetch(`${SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/${table}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_PUBLISHABLE_KEY,
+      "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify(row)
+  });
+
+  if (!response.ok) {
+    // Do not show raw server details to guests.
+    throw new Error("Data belum berhasil disimpan. Silakan coba lagi beberapa saat.");
+  }
+}
+
+// RSVP: maps HTML form fields to the rsvps table column names.
+document.getElementById("rsvpForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const form = event.currentTarget;
   const note = document.getElementById("formNote");
-  if (note) {
-    note.textContent = "Formulir demo berfungsi, tetapi data belum dikirim atau disimpan. Hubungkan ke database sebelum dipublikasikan untuk tamu.";
+  const button = form.querySelector('button[type="submit"]');
+  const data = new FormData(form);
+
+  const guestName = String(data.get("name") || "").trim();
+  const attendance = String(data.get("attendance") || "").trim();
+  const guestCount = Number.parseInt(String(data.get("guests") || "1"), 10);
+  const message = String(data.get("message") || "").trim();
+
+  if (!guestName || guestName.length > 80 ||
+      !["Hadir", "Tidak hadir"].includes(attendance) ||
+      !Number.isInteger(guestCount) || guestCount < 1 || guestCount > 4 ||
+      message.length > 500) {
+    setFormNote(note, "Periksa kembali isian formulir, lalu coba lagi.", true);
+    return;
+  }
+
+  if (button) button.disabled = true;
+  setFormNote(note, "Mengirim konfirmasi...");
+  try {
+    await insertPublicRow("rsvps", {
+      guest_name: guestName,
+      attendance,
+      guest_count: guestCount,
+      message: message || null
+    });
+    form.reset();
+    setFormNote(note, "Terima kasih! Konfirmasi kehadiran Anda berhasil dikirim.");
+  } catch (error) {
+    setFormNote(note, error.message || "Konfirmasi belum berhasil dikirim.", true);
+  } finally {
+    if (button) button.disabled = false;
+  }
+});
+
+// Guestbook: stores each guest message in the separate guestbook table.
+// This template intentionally does not read/display guestbook rows publicly.
+document.getElementById("guestbookForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const note = document.getElementById("guestbookNote");
+  const button = form.querySelector('button[type="submit"]');
+  const data = new FormData(form);
+
+  const guestName = String(data.get("name") || "").trim();
+  const message = String(data.get("message") || "").trim();
+
+  if (!guestName || guestName.length > 80 || !message || message.length > 500) {
+    setFormNote(note, "Nama wajib diisi dan ucapan maksimal 500 karakter.", true);
+    return;
+  }
+
+  if (button) button.disabled = true;
+  setFormNote(note, "Mengirim ucapan...");
+  try {
+    await insertPublicRow("guestbook", {
+      guest_name: guestName,
+      message
+    });
+    form.reset();
+    setFormNote(note, "Terima kasih! Ucapan dan doa Anda berhasil dikirim.");
+  } catch (error) {
+    setFormNote(note, error.message || "Ucapan belum berhasil dikirim.", true);
+  } finally {
+    if (button) button.disabled = false;
   }
 });
