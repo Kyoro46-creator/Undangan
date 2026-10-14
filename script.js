@@ -2,8 +2,7 @@
 // Ganti kedua nilai di bawah dengan Project URL dan Publishable key milik proyek Nanda's Company.
 // Gunakan publishable key (sb_publishable_...), JANGAN gunakan secret/service_role key.
 const SUPABASE_URL = "https://ldjfupxunudonkftptab.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy
-";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy";
 
 // Ubah tanggal acara di bawah ini sesuai tanggal pernikahan.
 const weddingDate = new Date("2026-12-20T08:00:00+07:00").getTime();
