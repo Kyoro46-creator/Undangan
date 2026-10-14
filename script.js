@@ -152,17 +152,7 @@ document.getElementById("rsvpForm")?.addEventListener("submit", async (event) =>
     if (!slug) {
       throw new Error("Kode undangan tidak ditemukan di URL.");
     }
-
-    const { data: invitationId, error: invitationError } =
-      await supabase.rpc("get_public_invitation_id", {
-        p_slug: slug
-      });
-
-    if (invitationError) throw invitationError;
-    if (!invitationId) {
-      throw new Error("Undangan tidak ditemukan atau tidak aktif.");
-    }
-
+    
     const invitationId = await getInvitationId();
 
     await insertPublicRow("rsvps", {
