@@ -101,3 +101,18 @@ footer small { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+.maps-button-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.maps-button-wrap a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
