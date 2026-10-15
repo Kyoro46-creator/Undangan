@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f2ea">
   <meta name="description" content="Undangan pernikahan digital yang elegan dan personal.">
-  <title id="pageTitle">Undangan Pernikahan</title>
+  <title id="pageTitle">Undangan Pernikahan | Nama Mempelai</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
@@ -187,7 +187,7 @@
 
       try {
         const response = await fetch(
-          `${SUPABASE_URL.replace(/\\/+$/, "")}/rest/v1/rpc/get_public_invitation`,
+          `${SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/rpc/get_public_invitation`,
           {
             method: "POST",
             headers: {
@@ -206,7 +206,7 @@
         }
 
         const names = String(invitation.couple_names).trim();
-        const parts = names.split(/\\s+(?:&|dan)\\s+/i);
+        const parts = names.split(/\s+(?:&|dan)\s+/i);
         const first = parts[0] || names;
         const second = parts[1] || "";
         const setText = (id, value) => {
