@@ -85,24 +85,30 @@
           <div><strong id="minutes">--</strong><span>Menit</span></div>
           <div><strong id="seconds">--</strong><span>Detik</span></div>
         </div>
-        <div class="event-grid">
-          <article class="event-card">
-            <span class="event-icon">01</span>
-            <h3>Akad Nikah</h3>
-            <p>Minggu, 20 Desember 2026</p>
-            <p>08.00 WIB – selesai</p>
-            <p>Gedung Contoh, Tanjung Selor</p>
-          </article>
-          <article class="event-card">
-            <span class="event-icon">02</span>
-            <h3>Resepsi</h3>
-            <p>Minggu, 20 Desember 2026</p>
-            <p>11.00–14.00 WIB</p>
-            <p>Gedung Contoh, Tanjung Selor</p>
-          </article>
-        </div>
-        <a class="button button-outline" href="https://maps.google.com/?q=Tanjung+Selor" target="_blank" rel="noopener">Buka Google Maps ↗</a>
-      </div>
+       
+<div class="event-grid">
+  <article class="event-card">
+    <span class="event-icon">01</span>
+    <h3>Akad Nikah</h3>
+    <p id="akadDate">Tanggal akad</p>
+    <p>Waktu akan diumumkan</p>
+    <p id="akadLocation">Lokasi akad</p>
+    <p id="akadAddress">Alamat akad</p>
+  </article>
+
+  <article class="event-card">
+    <span class="event-icon">02</span>
+    <h3>Resepsi</h3>
+    <p id="receptionDate">Tanggal resepsi</p>
+    <p>Waktu akan diumumkan</p>
+    <p id="receptionLocation">Lokasi resepsi</p>
+    <p id="receptionAddress">Alamat resepsi</p>
+    <a id="mapsLink" href="#" target="_blank"
+       rel="noopener noreferrer" style="display:none">
+      Lihat Lokasi di Google Maps
+    </a>
+  </article>
+</div>
     </section>
 
     <section class="gallery-section section-wrap" id="gallery">
