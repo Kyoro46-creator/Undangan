@@ -57,7 +57,7 @@
     <div class="cover-card">
       <p class="eyebrow">THE WEDDING OF</p>
       <h1 id="coverNames">Nama Mempelai</h1>
-      <p class="cover-date">Minggu, 20 Desember 2026</p>
+      <p class="cover-date" id="coverDate">Minggu, 20 Desember 2026</p
       <p class="cover-to">Kepada Yth. Bapak/Ibu/Saudara/i</p>
       <button class="button button-dark" id="openInvitation">Buka Undangan <span aria-hidden="true">↗</span></button>
     </div>
@@ -262,6 +262,17 @@
         };
 
         setText("coverNames", names);
+      if (invitation.wedding_date) {
+        setText(
+        "coverDate",
+        new Date(invitation.wedding_date).toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+          })
+        );
+      }
         setText("photoCaption", names + (invitation.wedding_date ? " · " + new Date(invitation.wedding_date).getFullYear() : ""));
         setText("brideName", first);
         setText("groomName", second);
