@@ -63,13 +63,13 @@
         <article class="person">
           <div class="initial" id="brideInitial">N</div>
           <h3 id="brideName">Nama Mempelai</h3>
-          <p>Putri dari Bapak Nama Ayah & Ibu Nama Ibu</p>
+          <p>Putri dari Bapak <span id="brideFather">Nama Ayah</span> &amp; Ibu <span id="brideMother">Nama Ibu</span></p>
         </article>
         <div class="ampersand">&</div>
         <article class="person">
           <div class="initial" id="groomInitial">M</div>
           <h3 id="groomName">Nama Mempelai</h3>
-          <p>Putra dari Bapak Nama Ayah & Ibu Nama Ibu</p>
+          <p>Putra dari Bapak <span id="groomFather">Nama Ayah</span> &amp; Ibu <span id="groomMother">Nama Ibu</span></p>
         </article>
       </div>
     </section>
@@ -223,6 +223,36 @@
         setText("brandInitials", first.charAt(0).toUpperCase() + "&" + (second.charAt(0).toUpperCase() || ""));
         setText("footerNames", names);
         document.title = "Undangan Pernikahan | " + names;
+         // Nama orang tua
+      setText("brideFather", invitation.bride_father);
+      setText("brideMother", invitation.bride_mother);
+      setText("groomFather", invitation.groom_father);
+      setText("groomMother", invitation.groom_mother);
+
+      // Tanggal dan lokasi akad
+      setText("akadDate", invitation.akad_date
+        ? new Date(invitation.akad_date).toLocaleDateString("id-ID", {
+            day: "numeric", month: "long", year: "numeric"
+          })
+        : "");
+      setText("akadLocation", invitation.akad_location);
+      setText("akadAddress", invitation.akad_address);
+
+      // Tanggal dan lokasi resepsi
+      setText("receptionDate", invitation.reception_date
+        ? new Date(invitation.reception_date).toLocaleDateString("id-ID", {
+            day: "numeric", month: "long", year: "numeric"
+          })
+        : "");
+      setText("receptionLocation", invitation.reception_location);
+      setText("receptionAddress", invitation.reception_address);
+
+      // Tautan peta
+      const mapsLink = document.getElementById("mapsLink");
+      if (mapsLink && invitation.maps_url) {
+        mapsLink.href = invitation.maps_url;
+        mapsLink.style.display = "";
+      }
       } catch (error) {
         console.error("Tidak dapat memuat data undangan:", error);
       }
