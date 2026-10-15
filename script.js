@@ -5,8 +5,6 @@ const SUPABASE_URL = "https://ldjfupxunudonkftptab.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy";
 
 // Ubah tanggal acara di bawah ini sesuai tanggal pernikahan.
-const weddingDate = new Date("2026-12-20T08:00:00+07:00").getTime();
-
 let weddingDate = null;
 let countdownTimer = null;
 
