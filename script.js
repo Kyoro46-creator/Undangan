@@ -1,11 +1,6 @@
 
-// Konfigurasi Supabase untuk website undangan.
-// Gunakan Project URL dan Publishable key milik proyek undangan.
-// Jangan pernah menggunakan secret/service_role key di website publik.
 const SUPABASE_URL = "https://ldjfupxunudonkftptab.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy";
-
-// Ubah tanggal acara di bawah ini sesuai tanggal pernikahan.
 
 let weddingDate = null;
 let countdownTimer = null;
