@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f2ea">
   <meta name="description" content="Undangan pernikahan digital yang elegan dan personal.">
-  <title>Undangan Pernikahan | Nama Mempelai</title>
+  <title id="pageTitle">Undangan Pernikahan | Nama Mempelai</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
   <div class="cover" id="cover">
     <div class="cover-card">
       <p class="eyebrow">THE WEDDING OF</p>
-      <h1>Alya <span>&</span> Arkan</h1>
+      <h1 id="coverNames">Nama Mempelai</h1>
       <p class="cover-date">Minggu, 20 Desember 2026</p>
       <p class="cover-to">Kepada Yth. Bapak/Ibu/Saudara/i</p>
       <button class="button button-dark" id="openInvitation">Buka Undangan <span aria-hidden="true">↗</span></button>
@@ -28,7 +28,7 @@
   </div>
 
   <header class="site-header">
-    <a class="brand" href="#home">A<span>&</span>A</a>
+    <a class="brand" href="#home" id="brandInitials">N<span>&</span>M</a>
     <nav aria-label="Navigasi utama">
       <a href="#couple">Mempelai</a>
       <a href="#event">Acara</a>
@@ -50,7 +50,7 @@
       <div class="hero-photo">
         <!-- Ganti URL gambar dengan foto pasangan milik Anda. -->
         <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=85" alt="Suasana pernikahan yang romantis">
-        <div class="photo-caption">Alya & Arkan · 2026</div>
+        <div class="photo-caption" id="photoCaption">Nama Mempelai · 2026</div>
       </div>
       <div class="hero-flower" aria-hidden="true">✳</div>
     </section>
@@ -61,14 +61,14 @@
       <p class="body-copy">Kami bermaksud menyelenggarakan pernikahan putra-putri kami. Merupakan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.</p>
       <div class="couple-grid">
         <article class="person">
-          <div class="initial">A</div>
-          <h3>Alya Putri</h3>
+          <div class="initial" id="brideInitial">N</div>
+          <h3 id="brideName">Nama Mempelai</h3>
           <p>Putri dari Bapak Nama Ayah & Ibu Nama Ibu</p>
         </article>
         <div class="ampersand">&</div>
         <article class="person">
-          <div class="initial">A</div>
-          <h3>Arkan Pratama</h3>
+          <div class="initial" id="groomInitial">M</div>
+          <h3 id="groomName">Nama Mempelai</h3>
           <p>Putra dari Bapak Nama Ayah & Ibu Nama Ibu</p>
         </article>
       </div>
@@ -143,7 +143,7 @@
           </label>
           <label>Ucapan dan doa<textarea name="message" rows="4" maxlength="500" placeholder="Tuliskan doa terbaik Anda (opsional)"></textarea></label>
           <button class="button button-dark" type="submit">Kirim Konfirmasi</button>
-          <p class="form-note" id="formNote" role="status">Mode demo: formulir belum terhubung ke database, jadi jawaban belum tersimpan atau terkirim.</p>
+          <p class="form-note" id="formNote" role="status">Isi formulir untuk mengirim konfirmasi kehadiran.</p>
         </form>
       </div>
     </section>
@@ -161,7 +161,7 @@
             <textarea name="message" required rows="4" maxlength="500" placeholder="Tuliskan ucapan dan doa Anda"></textarea>
           </label>
           <button class="button button-dark" type="submit">Kirim Ucapan</button>
-          <p class="form-note" id="guestbookNote" role="status">Ucapan akan disimpan setelah formulir terhubung ke database.</p>
+          <p class="form-note" id="guestbookNote" role="status">Isi formulir untuk mengirim ucapan dan doa.</p>
         </form>
       </div>
     </section>
@@ -169,9 +169,64 @@
 
   <footer>
     <p>Terima kasih atas doa dan kehadiran Anda.</p>
-    <p class="footer-names">Alya <span>&</span> Arkan</p>
+    <p class="footer-names" id="footerNames">Nama Mempelai</p>
     <small>Undangan digital · Dibuat dengan penuh cinta</small>
   </footer>
   <script src="script.js"></script>
+  <script>
+    (async function loadInvitationDetails() {
+      const slug = new URLSearchParams(window.location.search).get("invitation");
+      if (!slug) return;
+
+      // Data pasangan diambil melalui RPC publik Supabase, bukan dari tabel yang tertutup RLS.
+      if (typeof SUPABASE_URL === "undefined" ||
+          typeof SUPABASE_PUBLISHABLE_KEY === "undefined") {
+        console.error("Konfigurasi Supabase tidak ditemukan.");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL.replace(/\\/+$/, "")}/rest/v1/rpc/get_public_invitation`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+            },
+            body: JSON.stringify({ p_slug: slug })
+          }
+        );
+        if (!response.ok) throw new Error("Gagal memuat data undangan.");
+        const invitation = await response.json();
+        if (!invitation || !invitation.couple_names) {
+          document.title = "Undangan tidak ditemukan";
+          return;
+        }
+
+        const names = String(invitation.couple_names).trim();
+        const parts = names.split(/\\s+(?:&|dan)\\s+/i);
+        const first = parts[0] || names;
+        const second = parts[1] || "";
+        const setText = (id, value) => {
+          const el = document.getElementById(id);
+          if (el && value) el.textContent = value;
+        };
+
+        setText("coverNames", names);
+        setText("photoCaption", names + (invitation.wedding_date ? " · " + new Date(invitation.wedding_date).getFullYear() : ""));
+        setText("brideName", first);
+        setText("groomName", second);
+        setText("brideInitial", first.charAt(0).toUpperCase());
+        setText("groomInitial", second.charAt(0).toUpperCase());
+        setText("brandInitials", first.charAt(0).toUpperCase() + "&" + (second.charAt(0).toUpperCase() || ""));
+        setText("footerNames", names);
+        document.title = "Undangan Pernikahan | " + names;
+      } catch (error) {
+        console.error("Tidak dapat memuat data undangan:", error);
+      }
+    })();
+  </script>
 </body>
 </html>
