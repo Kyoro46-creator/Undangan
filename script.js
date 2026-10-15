@@ -207,4 +207,55 @@ document.getElementById("guestbookForm")?.addEventListener("submit", async (even
     if (button) button.disabled = false;
   }
 });
+async function loadInvitationNames() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("invitation");
+
+  if (!slug) return;
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/get_public_invitation`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        },
+        body: JSON.stringify({ p_slug: slug })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data undangan");
+    }
+
+    const invitation = await response.json();
+    if (!invitation || !invitation.couple_names) return;
+
+    const names = invitation.couple_names;
+    const parts = names.split(/\s*&\s*|\s+dan\s+/i);
+    const bride = (parts[0] || names).trim();
+    const groom = (parts[1] || "").trim();
+
+    const setText = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    };
+
+    setText("coverNames", names);
+    setText("photoCaption", `${names} · 2026`);
+    setText("brideName", bride);
+    setText("groomName", groom);
+    setText("brideInitial", bride.charAt(0).toUpperCase());
+    setText("groomInitial", groom.charAt(0).toUpperCase());
+    setText("footerNames", names);
+    document.title = `Undangan Pernikahan | ${names}`;
+  } catch (error) {
+    console.error("Gagal memuat nama undangan:", error);
+  }
+}
+
+loadInvitationNames();
 
