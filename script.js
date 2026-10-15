@@ -7,24 +7,49 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DXJvuYp0J_CL3qo6ier34Q_FZ0NJlsy
 // Ubah tanggal acara di bawah ini sesuai tanggal pernikahan.
 const weddingDate = new Date("2026-12-20T08:00:00+07:00").getTime();
 
+let weddingDate = null;
+let countdownTimer = null;
+
 function updateCountdown() {
-  const distance = weddingDate - Date.now();
-  const safeDistance = Math.max(0, distance);
+  const ids = ["days", "hours", "minutes", "seconds"];
+  const elements = Object.fromEntries(
+    ids.map(id => [id, document.getElementById(id)])
+  );
+
+  if (!weddingDate) {
+    for (const element of Object.values(elements)) {
+      if (element) element.textContent = "--";
+    }
+    return;
+  }
+
+  const distance = Math.max(0, weddingDate - Date.now());
+
   const values = {
-    days: Math.floor(safeDistance / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((safeDistance / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((safeDistance / (1000 * 60)) % 60),
-    seconds: Math.floor((safeDistance / 1000) % 60)
+    days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((distance / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((distance / (1000 * 60)) % 60),
+    seconds: Math.floor((distance / 1000) % 60)
   };
 
   for (const [id, value] of Object.entries(values)) {
-    const element = document.getElementById(id);
-    if (element) element.textContent = String(value).padStart(2, "0");
+    if (elements[id]) {
+      elements[id].textContent = String(value).padStart(2, "0");
+    }
   }
 }
 
+function setWeddingDate(dateString) {
+  if (countdownTimer) clearInterval(countdownTimer);
+
+  const parsedDate = dateString ? new Date(dateString).getTime() : NaN;
+  weddingDate = Number.isFinite(parsedDate) ? parsedDate : null;
+
+  updateCountdown();
+  countdownTimer = setInterval(updateCountdown, 1000);
+}
+
 updateCountdown();
-setInterval(updateCountdown, 1000);
 
 const cover = document.getElementById("cover");
 const music = document.getElementById("weddingMusic");
@@ -232,6 +257,7 @@ async function loadInvitationNames() {
     }
 
     const invitation = await response.json();
+    setWeddingDate(invitation?.wedding_date);
     if (!invitation || !invitation.couple_names) return;
 
     const names = invitation.couple_names;
