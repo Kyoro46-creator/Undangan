@@ -217,3 +217,55 @@ footer small { color: var(--muted); }
     transition-delay: 0s;
   }
 }
+/* ===== ANIMASI MUNCUL SAAT SCROLL ===== */
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Variasi gerakan foto */
+.reveal-from-left {
+  transform: translateX(-32px);
+}
+
+.reveal-from-right {
+  transform: translateX(32px);
+}
+
+.reveal-from-left.is-visible,
+.reveal-from-right.is-visible {
+  transform: translateX(0);
+}
+
+/* Tampilan tetap nyaman di HP */
+@media (max-width: 600px) {
+  .reveal-on-scroll {
+    transform: translateY(18px);
+  }
+
+  .reveal-from-left,
+  .reveal-from-right {
+    transform: translateY(18px);
+  }
+}
+
+/* Hormati pengaturan pengurangan animasi */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll,
+  .reveal-from-left,
+  .reveal-from-right {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
