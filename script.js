@@ -51,16 +51,16 @@ const music = document.getElementById("weddingMusic");
 const openButton = document.getElementById("openInvitation");
 const musicToggle = document.getElementById("musicToggle");
 
-openButton?.addEventListener("click", async () => {
-  cover?.classList.add("is-hidden");
-  try {
-    await music?.play();
-    if (musicToggle) musicToggle.innerHTML = "♫ <span>Musik aktif</span>";
-  } catch {
-    // Musik bisa gagal jika file belum tersedia; undangan tetap terbuka.
-  }
-});
+openButton?.addEventListener("click", () => {
+  if (!cover || cover.classList.contains("is-opening")) return;
 
+  cover.classList.add("is-opening");
+
+  // Tunggu tirai selesai bergerak sebelum menyembunyikan sampul.
+  window.setTimeout(() => {
+    cover.classList.add("is-hidden");
+  }, 1400);
+});
 musicToggle?.addEventListener("click", async () => {
   if (!music) return;
   if (music.paused) {
