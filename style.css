@@ -269,3 +269,45 @@ footer small { color: var(--muted); }
     transition: none;
   }
 }
+
+/* ===== BINGKAI FOTO PENGANTIN NAVY & EMAS ===== */
+
+.person img {
+  display: block;
+  width: min(100%, 300px);
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center;
+  margin-inline: auto;
+
+  border: 5px solid #c5a45b;
+  outline: 2px solid rgba(197, 164, 91, 0.55);
+  outline-offset: 5px;
+  border-radius: 48% 48% 12px 12px;
+
+  box-shadow:
+    0 0 0 10px rgba(20, 43, 73, 0.08),
+    0 14px 32px rgba(10, 25, 45, 0.2);
+
+  transition:
+    transform 0.65s ease,
+    box-shadow 0.65s ease,
+    border-color 0.65s ease;
+}
+
+.person img:hover {
+  transform: translateY(-5px) scale(1.015);
+  border-color: #e3cc8e;
+  box-shadow:
+    0 0 0 10px rgba(197, 164, 91, 0.12),
+    0 20px 38px rgba(10, 25, 45, 0.25);
+}
+
+/* Penyesuaian bingkai di layar HP */
+@media (max-width: 600px) {
+  .person img {
+    width: min(78%, 260px);
+    border-width: 4px;
+    outline-offset: 4px;
+  }
+}
