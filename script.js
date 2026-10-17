@@ -280,3 +280,95 @@ async function loadInvitationNames() {
 
 loadInvitationNames();
 
+/* ===== AKTIFKAN ANIMASI SCROLL ===== */
+
+(() => {
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if (reduceMotion) return;
+
+  const revealGroups = [
+    {
+      selector: ".hero-copy",
+      animation: "reveal-from-left"
+    },
+    {
+      selector: ".hero-photo",
+      animation: "reveal-from-right"
+    },
+    {
+      selector: ".intro > .eyebrow, .intro > h2, .intro > .body-copy",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".person",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".ampersand",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".event-inner > *",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".event-card",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".gallery-section > *",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".gallery-grid img",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".video-box",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: ".rsvp-inner > *",
+      animation: "reveal-on-scroll"
+    },
+    {
+      selector: "footer > *",
+      animation: "reveal-on-scroll"
+    }
+  ];
+
+  const elements = new Set();
+
+  revealGroups.forEach(group => {
+    document.querySelectorAll(group.selector).forEach(element => {
+      element.classList.add(...group.animation.split(" "));
+      elements.add(element);
+    });
+  });
+
+  if (!("IntersectionObserver" in window)) {
+    elements.forEach(element => {
+      element.classList.add("is-visible");
+    });
+    return;
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: "0px 0px -35px 0px"
+  });
+
+  elements.forEach(element => observer.observe(element));
+})();
+
+
