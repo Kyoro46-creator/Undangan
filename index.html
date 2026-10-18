@@ -114,11 +114,34 @@
     }
     #cover.has-uploaded-cover .cover-card {
       position: relative;
-      z-index: 1;
+      /* Kartu harus berada di depan panel tirai saat undangan tertutup. */
+      z-index: 20;
       color: #fffaf0;
-      background: rgba(13, 29, 49, .58);
-      border: 1px solid rgba(197, 164, 91, .8);
+      background: rgba(13, 29, 49, .78);
+      border: 1px solid rgba(197, 164, 91, .9);
       backdrop-filter: blur(3px);
+    }
+
+    /* Pastikan kartu pembuka selalu terlihat di atas kedua panel tirai. */
+    #cover .cover-card {
+      position: relative;
+      z-index: 20;
+      opacity: 1;
+      visibility: visible;
+      display: block;
+    }
+
+    #cover.is-opening .cover-card {
+      animation: coverCardFade .45s ease forwards;
+      animation-delay: .25s;
+    }
+
+    @keyframes coverCardFade {
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #cover.is-opening .cover-card { animation: none; }
     }
     #cover.has-uploaded-cover .cover-card .eyebrow,
     #cover.has-uploaded-cover .cover-date,
