@@ -84,6 +84,42 @@
     .form-grid label { display:block; margin-top:8px; font-size:14px; }
     @media(max-width:600px){ .form-grid{grid-template-columns:1fr;} }
     [hidden] { display: none !important; }
+    
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.photo-card {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #d8c69b;
+  border-radius: 12px;
+  background: #faf7f0;
+}
+
+.photo-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.photo-card p {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: #625a4b;
+}
+
+.photo-card button {
+  width: 100%;
+  font-size: 12px;
+  padding: 9px 6px;
+}
+
   </style>
 </head>
 
