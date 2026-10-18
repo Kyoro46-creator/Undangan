@@ -63,6 +63,47 @@
       #invitationPhotoGallery .gallery-photo-item img { transition:none; }
     }
 
+
+    /* Potret mempelai: bingkai oval navy dan emas */
+    #couple .person .profile-photo {
+      display: block;
+      width: min(100%, 250px);
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      object-position: center;
+      margin: 0 auto 22px;
+      padding: 5px;
+      border: 2px solid #c5a45b;
+      outline: 1px solid rgba(197, 164, 91, .65);
+      outline-offset: 4px;
+      border-radius: 48% 48% 14px 14px;
+      background: #142b49;
+      box-shadow: 0 14px 32px rgba(20, 43, 73, .18);
+      animation: profilePhotoReveal .8s cubic-bezier(.22, 1, .36, 1) both;
+    }
+    #couple .person .initial.profile-photo-placeholder {
+      width: min(100%, 250px);
+      aspect-ratio: 3 / 4;
+      height: auto;
+      margin: 0 auto 22px;
+      border: 2px solid #c5a45b;
+      outline: 1px solid rgba(197, 164, 91, .65);
+      outline-offset: 4px;
+      border-radius: 48% 48% 14px 14px;
+      display: grid;
+      place-items: center;
+    }
+    @keyframes profilePhotoReveal {
+      from { opacity: 0; transform: translateY(16px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (max-width: 600px) {
+      #couple .person .profile-photo,
+      #couple .person .initial.profile-photo-placeholder {
+        width: min(78%, 230px);
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -336,18 +377,25 @@
   </script>
 
   <script>
-    // Galeri publik dibaca melalui RPC yang memfilter slug undangan aktif.
-    (async function loadUploadedInvitationPhotos() {
+    // Foto profil dan galeri dimuat berdasarkan slug undangan aktif.
+    (async function loadInvitationPhotos() {
       const slug = new URLSearchParams(window.location.search).get("invitation");
       const gallery = document.getElementById("invitationPhotoGallery");
-      if (!slug || !gallery) return;
+      if (!slug) return;
+
       if (typeof SUPABASE_URL === "undefined" ||
           typeof SUPABASE_PUBLISHABLE_KEY === "undefined") {
-        console.error("Konfigurasi Supabase tidak ditemukan untuk galeri foto.");
+        console.error("Konfigurasi Supabase tidak ditemukan untuk foto undangan.");
         return;
       }
 
       const baseUrl = SUPABASE_URL.replace(/\/+$/, "");
+      const publicPhotoUrl = (path) => {
+        const encodedPath = String(path).split("/")
+          .map(part => encodeURIComponent(part)).join("/");
+        return `${baseUrl}/storage/v1/object/public/Foto/${encodedPath}`;
+      };
+
       try {
         const response = await fetch(
           `${baseUrl}/rest/v1/rpc/get_public_invitation_photos`,
@@ -364,47 +412,87 @@
 
         if (!response.ok) {
           const detail = await response.text();
-          throw new Error(`RPC galeri gagal (${response.status}): ${detail}`);
+          throw new Error(`RPC foto gagal (${response.status}): ${detail}`);
         }
 
         const photos = await response.json();
         if (!Array.isArray(photos) || photos.length === 0) {
-          console.info("Belum ada foto yang dapat ditampilkan untuk undangan ini.");
+          console.info("Belum ada foto terpilih untuk undangan ini.");
           return;
         }
 
-        const fragment = document.createDocumentFragment();
-        photos.forEach((photo, index) => {
-          if (!photo.storage_path) return;
-          const item = document.createElement("figure");
-          item.className = "gallery-photo-item";
-          item.style.animationDelay = `${Math.min(index * 90, 450)}ms`;
+        // Pasang potret pengantin wanita/pria ke bagian profil.
+        const profileCategories = [
+          { category: "bride", target: "brideInitial", alt: "Foto mempelai wanita" },
+          { category: "groom", target: "groomInitial", alt: "Foto mempelai pria" }
+        ];
+
+        profileCategories.forEach(profile => {
+          const photo = photos.find(item => item.category === profile.category);
+          const target = document.getElementById(profile.target);
+          if (!photo || !target || !photo.storage_path) return;
 
           const image = document.createElement("img");
-          const encodedPath = photo.storage_path.split("/")
-            .map(part => encodeURIComponent(part)).join("/");
-          image.src = `${baseUrl}/storage/v1/object/public/Foto/${encodedPath}`;
-          image.alt = photo.caption || `Foto pernikahan ${index + 1}`;
+          image.className = "profile-photo";
+          image.src = publicPhotoUrl(photo.storage_path);
+          image.alt = profile.alt;
           image.loading = "lazy";
           image.decoding = "async";
           image.addEventListener("error", () => {
-            item.remove();
-            console.error("Foto galeri gagal dimuat:", image.src);
+            console.error("Foto profil gagal dimuat:", photo.storage_path);
           }, { once: true });
 
-          item.appendChild(image);
-          if (photo.caption) {
-            const caption = document.createElement("figcaption");
-            caption.className = "gallery-photo-caption";
-            caption.textContent = photo.caption;
-            item.appendChild(caption);
-          }
-          fragment.appendChild(item);
+          target.classList.remove("initial");
+          target.classList.add("profile-photo-placeholder");
+          target.replaceWith(image);
         });
 
-        if (fragment.childNodes.length > 0) gallery.replaceChildren(fragment);
+        // Foto kategori gallery saja masuk ke galeri. Foto profil tidak ikut tercampur.
+        if (gallery) {
+          const galleryPhotos = photos.filter(item =>
+            !item.category || item.category === "gallery"
+          );
+
+          if (galleryPhotos.length > 0) {
+            const fragment = document.createDocumentFragment();
+
+            galleryPhotos.forEach((photo, index) => {
+              if (!photo.storage_path) return;
+
+              const item = document.createElement("figure");
+              item.className = "gallery-photo-item";
+              item.style.animationDelay = `${Math.min(index * 90, 450)}ms`;
+
+              const image = document.createElement("img");
+              image.src = publicPhotoUrl(photo.storage_path);
+              image.alt = photo.caption || `Foto pernikahan ${index + 1}`;
+              image.loading = "lazy";
+              image.decoding = "async";
+              image.addEventListener("error", () => {
+                item.remove();
+                console.error("Foto galeri gagal dimuat:", photo.storage_path);
+              }, { once: true });
+
+              item.appendChild(image);
+
+              if (photo.caption) {
+                const caption = document.createElement("figcaption");
+                caption.className = "gallery-photo-caption";
+                caption.textContent = photo.caption;
+                item.appendChild(caption);
+              }
+
+              fragment.appendChild(item);
+            });
+
+            if (fragment.childNodes.length > 0) {
+              gallery.replaceChildren(fragment);
+            }
+          }
+        }
       } catch (error) {
-        console.error("Galeri foto belum dapat dimuat:", error);
+        // Kegagalan foto tidak mengganggu RSVP, buku tamu, atau detail acara.
+        console.error("Foto undangan belum dapat dimuat:", error);
       }
     })();
   </script>
