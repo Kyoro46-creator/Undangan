@@ -120,6 +120,11 @@
   padding: 9px 6px;
 }
 
+    .photo-category-select {
+      width: 100%; padding: 12px; margin: 12px 0 4px;
+      border: 1px solid #d5cbbc; border-radius: 8px;
+      background: #fff; color: #292820; font-size: 15px;
+    }
   </style>
 </head>
 
@@ -322,6 +327,22 @@
         edit.type = "button"; edit.className = "secondary"; edit.textContent = "Edit Detail";
         edit.addEventListener("click", () => openEditForm(item));
         
+        const photoCategory = document.createElement("select");
+        photoCategory.className = "photo-category-select";
+        photoCategory.setAttribute("aria-label", "Kategori foto");
+        [
+          ["gallery", "Foto galeri"],
+          ["bride", "Mempelai wanita"],
+          ["groom", "Mempelai pria"],
+          ["couple", "Foto mereka bersama"],
+          ["cover", "Foto sampul"]
+        ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = label;
+          photoCategory.appendChild(option);
+        });
+
         const uploadInput = document.createElement("input");
         uploadInput.type = "file";
         uploadInput.accept = "image/jpeg,image/png,image/webp";
@@ -340,7 +361,7 @@
 
           const { data: photos, error } = await db
             .from("invitation_photos")
-            .select("id, storage_path, caption, sort_order")
+            .select("id, storage_path, caption, sort_order, category, created_at")
             .eq("invitation_id", item.id)
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: true });
@@ -370,7 +391,16 @@
             image.loading = "lazy";
 
             const caption = document.createElement("p");
-            caption.textContent = photo.caption || "Foto undangan";
+            const categoryLabels = {
+              cover: "Foto sampul",
+              bride: "Mempelai wanita",
+              groom: "Mempelai pria",
+              couple: "Foto bersama",
+              gallery: "Foto galeri"
+            };
+            caption.textContent =
+              (categoryLabels[photo.category || "gallery"] || "Foto galeri") +
+              " · " + (photo.caption || "Foto undangan");
 
             const deleteButton = document.createElement("button");
             deleteButton.type = "button";
@@ -460,7 +490,8 @@
                 .insert({
                   invitation_id: item.id,
                   storage_path: path,
-                  caption: file.name.slice(0, 200)
+                  caption: file.name.slice(0, 200),
+                  category: photoCategory.value
                 });
 
               if (insertError) {
@@ -481,8 +512,11 @@
           }
         });
 
-        actions.append(copy, open, edit, uploadButton);
-        article.append(title, slug, date, state, link, actions, uploadInput, gallery);
+        actions.append(copy, open, edit);
+        article.append(
+          title, slug, date, state, link,
+          photoCategory, uploadButton, actions, uploadInput, gallery
+        );
         invitationList.appendChild(article);
 
         loadPhotos();
