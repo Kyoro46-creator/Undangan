@@ -107,22 +107,10 @@
 
     /* Foto kategori sampul dan foto pasangan yang dikelola dari admin */
     #cover.has-uploaded-cover {
+      /* Jangan timpa position: fixed milik cover asli agar tirai tetap bekerja. */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      position: relative;
-      isolation: isolate;
-    }
-    #cover.has-uploaded-cover::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      background: linear-gradient(
-        180deg,
-        rgba(8, 18, 32, .28),
-        rgba(8, 18, 32, .50)
-      );
     }
     #cover.has-uploaded-cover .cover-card {
       position: relative;
