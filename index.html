@@ -156,6 +156,50 @@
       box-shadow: 0 16px 36px rgba(20, 43, 73, .22);
     }
 
+
+    /* Profil mempelai vertikal: wanita dahulu, pria menyusul di bawah. */
+    #couple .couple-grid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 34px;
+      width: 100%;
+      max-width: 560px;
+      margin: 36px auto 0;
+    }
+    #couple .couple-grid .person {
+      width: 100%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .75s ease, transform .85s cubic-bezier(.22,1,.36,1);
+      will-change: opacity, transform;
+    }
+    #couple .couple-grid .person.profile-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #couple .couple-grid .person:first-child { transition-delay: 0s; }
+    #couple .couple-grid .person:last-child { transition-delay: .18s; }
+    #couple .couple-grid .ampersand {
+      order: 2;
+      margin: -18px 0;
+      color: #c5a45b;
+    }
+    #couple .couple-grid .person:first-child { order: 1; }
+    #couple .couple-grid .person:last-child { order: 3; }
+    #couple .person .profile-photo,
+    #couple .person .initial.profile-photo-placeholder {
+      width: min(78%, 280px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #couple .couple-grid .person {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -564,6 +608,33 @@
         // Kegagalan foto tidak mengganggu RSVP, buku tamu, atau detail acara.
         console.error("Foto undangan belum dapat dimuat:", error);
       }
+    })();
+  </script>
+
+
+  <script>
+    // Animasi profil berulang ketika bagian mempelai masuk kembali ke layar.
+    (function animateCoupleProfiles() {
+      const section = document.getElementById("couple");
+      if (!section) return;
+      const people = section.querySelectorAll(".couple-grid .person");
+      if (!people.length) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        people.forEach(person => person.classList.add("profile-visible"));
+        return;
+      }
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            people.forEach((person, index) => {
+              window.setTimeout(() => person.classList.add("profile-visible"), index * 450);
+            });
+          } else {
+            people.forEach(person => person.classList.remove("profile-visible"));
+          }
+        });
+      }, { threshold: 0.18 });
+      observer.observe(section);
     })();
   </script>
 
