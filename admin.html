@@ -364,7 +364,7 @@
 
             const image = document.createElement("img");
             image.src = db.storage
-              .from("invitation-photos")
+              .from("Foto")
               .getPublicUrl(photo.storage_path).data.publicUrl;
             image.alt = photo.caption || "Foto undangan";
             image.loading = "lazy";
@@ -383,7 +383,7 @@
               deleteButton.disabled = true;
 
               const { error: storageError } = await db.storage
-                .from("invitation-photos")
+                .from("Foto")
                 .remove([photo.storage_path]);
 
               if (storageError) {
@@ -444,7 +444,7 @@
                 item.id + "/" + crypto.randomUUID() + "-" + safeName;
 
               const { error: uploadError } = await db.storage
-                .from("invitation-photos")
+                .from("Foto")
                 .upload(path, file, {
                   contentType: file.type,
                   upsert: false
@@ -464,7 +464,7 @@
                 });
 
               if (insertError) {
-                await db.storage.from("invitation-photos").remove([path]);
+                await db.storage.from("Foto").remove([path]);
                 showStatus("Gagal menyimpan data foto: " + insertError.message);
                 continue;
               }
