@@ -285,7 +285,172 @@
         const edit = document.createElement("button");
         edit.type = "button"; edit.className = "secondary"; edit.textContent = "Edit Detail";
         edit.addEventListener("click", () => openEditForm(item));
-        actions.append(copy, open, edit);
+        
+        const uploadInput = document.createElement("input");
+        uploadInput.type = "file";
+        uploadInput.accept = "image/jpeg,image/png,image/webp";
+        uploadInput.multiple = true;
+        uploadInput.hidden = true;
+
+        const uploadButton = document.createElement("button");
+        uploadButton.type = "button";
+        uploadButton.textContent = "+ Tambah Foto";
+
+        const gallery = document.createElement("div");
+        gallery.className = "photo-gallery";
+
+        const loadPhotos = async () => {
+          gallery.replaceChildren();
+
+          const { data: photos, error } = await db
+            .from("invitation_photos")
+            .select("id, storage_path, caption, sort_order")
+            .eq("invitation_id", item.id)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true });
+
+          if (error) {
+            gallery.textContent = "Gagal memuat galeri: " + error.message;
+            return;
+          }
+
+          if (!photos || photos.length === 0) {
+            gallery.textContent = "Belum ada foto.";
+            gallery.className = "muted photo-gallery";
+            return;
+          }
+
+          gallery.className = "photo-gallery";
+
+          photos.forEach(photo => {
+            const card = document.createElement("div");
+            card.className = "photo-card";
+
+            const image = document.createElement("img");
+            image.src = db.storage
+              .from("invitation-photos")
+              .getPublicUrl(photo.storage_path).data.publicUrl;
+            image.alt = photo.caption || "Foto undangan";
+            image.loading = "lazy";
+
+            const caption = document.createElement("p");
+            caption.textContent = photo.caption || "Foto undangan";
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "secondary";
+            deleteButton.textContent = "Hapus Foto";
+
+            deleteButton.addEventListener("click", async () => {
+              if (!confirm("Yakin ingin menghapus foto ini?")) return;
+
+              deleteButton.disabled = true;
+
+              const { error: storageError } = await db.storage
+                .from("invitation-photos")
+                .remove([photo.storage_path]);
+
+              if (storageError) {
+                showStatus("Gagal menghapus file: " + storageError.message);
+                deleteButton.disabled = false;
+                return;
+              }
+
+              const { error: rowError } = await db
+                .from("invitation_photos")
+                .delete()
+                .eq("id", photo.id)
+                .eq("invitation_id", item.id);
+
+              if (rowError) {
+                showStatus(
+                  "File terhapus, tetapi metadata gagal dihapus: " +
+                  rowError.message
+                );
+                return;
+              }
+
+              showStatus("Foto berhasil dihapus.");
+              await loadPhotos();
+            });
+
+            card.append(image, caption, deleteButton);
+            gallery.appendChild(card);
+          });
+        };
+
+        uploadButton.addEventListener("click", () => uploadInput.click());
+
+        uploadInput.addEventListener("change", async () => {
+          const files = Array.from(uploadInput.files || []);
+
+          if (!files.length) return;
+
+          uploadButton.disabled = true;
+
+          try {
+            for (const file of files) {
+              if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                showStatus("Format tidak didukung: " + file.name);
+                continue;
+              }
+
+              if (file.size > 5 * 1024 * 1024) {
+                showStatus("Ukuran foto melebihi 5 MB: " + file.name);
+                continue;
+              }
+
+              const safeName = file.name
+                .normalize("NFKD")
+                .replace(/[^a-zA-Z0-9._-]/g, "-");
+
+              const path =
+                item.id + "/" + crypto.randomUUID() + "-" + safeName;
+
+              const { error: uploadError } = await db.storage
+                .from("invitation-photos")
+                .upload(path, file, {
+                  contentType: file.type,
+                  upsert: false
+                });
+
+              if (uploadError) {
+                showStatus("Gagal mengunggah " + file.name + ": " + uploadError.message);
+                continue;
+              }
+
+              const { error: insertError } = await db
+                .from("invitation_photos")
+                .insert({
+                  invitation_id: item.id,
+                  storage_path: path,
+                  caption: file.name.slice(0, 200)
+                });
+
+              if (insertError) {
+                await db.storage.from("invitation-photos").remove([path]);
+                showStatus("Gagal menyimpan data foto: " + insertError.message);
+                continue;
+              }
+
+              showStatus("Foto berhasil diunggah: " + file.name);
+            }
+
+            await loadPhotos();
+          } catch (error) {
+            showStatus("Terjadi kesalahan upload: " + error.message);
+          } finally {
+            uploadButton.disabled = false;
+            uploadInput.value = "";
+          }
+        });
+
+        actions.append(copy, open, edit, uploadButton);
+        article.append(title, slug, date, state, link, actions, uploadInput, gallery);
+        invitationList.appendChild(article);
+
+        loadPhotos();
+
         article.append(title, slug, date, state, link, actions);
         invitationList.appendChild(article);
       });
