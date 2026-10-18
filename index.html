@@ -104,6 +104,47 @@
       }
     }
 
+
+    /* Foto kategori sampul dan foto pasangan yang dikelola dari admin */
+    #cover.has-uploaded-cover {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+      isolation: isolate;
+    }
+    #cover.has-uploaded-cover::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(
+        180deg,
+        rgba(8, 18, 32, .28),
+        rgba(8, 18, 32, .50)
+      );
+    }
+    #cover.has-uploaded-cover .cover-card {
+      position: relative;
+      z-index: 1;
+      color: #fffaf0;
+      background: rgba(13, 29, 49, .58);
+      border: 1px solid rgba(197, 164, 91, .8);
+      backdrop-filter: blur(3px);
+    }
+    #cover.has-uploaded-cover .cover-card .eyebrow,
+    #cover.has-uploaded-cover .cover-date,
+    #cover.has-uploaded-cover .cover-to {
+      color: #fffaf0;
+    }
+    .hero-photo img.couple-uploaded-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: 3px solid #c5a45b;
+      box-shadow: 0 16px 36px rgba(20, 43, 73, .22);
+    }
+
   </style>
 </head>
 <body>
@@ -419,6 +460,24 @@
         if (!Array.isArray(photos) || photos.length === 0) {
           console.info("Belum ada foto terpilih untuk undangan ini.");
           return;
+        }
+
+        // Foto sampul menjadi latar pada layar pembuka.
+        const coverPhoto = photos.find(item => item.category === "cover");
+        const cover = document.getElementById("cover");
+        if (coverPhoto && coverPhoto.storage_path && cover) {
+          cover.style.backgroundImage =
+            `linear-gradient(rgba(8,18,32,.25), rgba(8,18,32,.48)), url("${publicPhotoUrl(coverPhoto.storage_path)}")`;
+          cover.classList.add("has-uploaded-cover");
+        }
+
+        // Foto bersama menggantikan foto utama pada hero.
+        const couplePhoto = photos.find(item => item.category === "couple");
+        const heroImage = document.querySelector(".hero-photo img");
+        if (couplePhoto && couplePhoto.storage_path && heroImage) {
+          heroImage.src = publicPhotoUrl(couplePhoto.storage_path);
+          heroImage.alt = couplePhoto.caption || "Foto kedua mempelai";
+          heroImage.classList.add("couple-uploaded-photo");
         }
 
         // Pasang potret pengantin wanita/pria ke bagian profil.
