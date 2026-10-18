@@ -45,6 +45,44 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Galeri foto yang diunggah melalui admin: bingkai navy dan emas */
+    #invitationPhotoGallery img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      border: 3px solid #c5a45b;
+      outline: 1px solid rgba(197, 164, 91, 0.55);
+      outline-offset: 3px;
+      border-radius: 48% 48% 10px 10px;
+      box-shadow: 0 12px 28px rgba(20, 43, 73, 0.18);
+      transition: transform .55s ease, box-shadow .55s ease;
+    }
+    #invitationPhotoGallery img:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 34px rgba(20, 43, 73, 0.25);
+    }
+    #invitationPhotoGallery .gallery-photo-item {
+      min-width: 0;
+      animation: galleryPhotoEnter .65s ease both;
+    }
+    #invitationPhotoGallery .gallery-photo-caption {
+      margin: 12px 4px 0;
+      color: #142b49;
+      text-align: center;
+      font-size: .85rem;
+      overflow-wrap: anywhere;
+    }
+    @keyframes galleryPhotoEnter {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #invitationPhotoGallery .gallery-photo-item { animation: none; }
+      #invitationPhotoGallery img { transition: none; }
+    }
+
   </style>
 </head>
 <body>
@@ -156,7 +194,7 @@
       <p class="eyebrow">OUR MOMENTS</p>
       <h2>Sepenggal cerita</h2>
       <p class="body-copy">Momen kecil yang membawa kami sampai ke hari ini.</p>
-      <div class="gallery-grid">
+      <div class="gallery-grid" id="invitationPhotoGallery">
         <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85" alt="Momen pernikahan 1" loading="lazy">
         <img src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=85" alt="Momen pernikahan 2" loading="lazy">
         <img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=85" alt="Momen pernikahan 3" loading="lazy">
@@ -316,5 +354,114 @@
       }
     })();
   </script>
+
+  <script>
+    // Memuat foto galeri yang diunggah dari admin, sesuai slug undangan aktif.
+    (async function loadUploadedInvitationPhotos() {
+      const slug = new URLSearchParams(window.location.search).get("invitation");
+      const gallery = document.getElementById("invitationPhotoGallery");
+      if (!slug || !gallery) return;
+
+      if (typeof SUPABASE_URL === "undefined" ||
+          typeof SUPABASE_PUBLISHABLE_KEY === "undefined") {
+        console.error("Konfigurasi Supabase tidak ditemukan untuk galeri foto.");
+        return;
+      }
+
+      const baseUrl = SUPABASE_URL.replace(/\/+$/, "");
+      const headers = {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+      };
+
+      try {
+        // Dapatkan UUID undangan dari slug melalui RPC publik yang sudah ada.
+        const idResponse = await fetch(
+          `${baseUrl}/rest/v1/rpc/get_public_invitation_id`,
+          {
+            method: "POST",
+            headers: {
+              ...headers,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ p_slug: slug })
+          }
+        );
+
+        if (!idResponse.ok) {
+          throw new Error("Tidak dapat menemukan ID undangan untuk galeri.");
+        }
+
+        const invitationId = await idResponse.json();
+        if (!invitationId) return;
+
+        const query = new URLSearchParams({
+          select: "id,storage_path,caption,sort_order,created_at",
+          invitation_id: `eq.${invitationId}`,
+          order: "sort_order.asc,created_at.asc"
+        });
+
+        const photosResponse = await fetch(
+          `${baseUrl}/rest/v1/invitation_photos?${query.toString()}`,
+          { headers }
+        );
+
+        if (!photosResponse.ok) {
+          throw new Error("Gagal mengambil data galeri foto.");
+        }
+
+        const photos = await photosResponse.json();
+        if (!Array.isArray(photos) || photos.length === 0) {
+          // Jika belum ada foto yang diunggah, biarkan galeri contoh tetap tampil.
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        photos.forEach((photo, index) => {
+          if (!photo.storage_path) return;
+
+          const item = document.createElement("figure");
+          item.className = "gallery-photo-item";
+          item.style.animationDelay = `${Math.min(index * 90, 450)}ms`;
+
+          const image = document.createElement("img");
+          const encodedPath = photo.storage_path
+            .split("/")
+            .map(part => encodeURIComponent(part))
+            .join("/");
+          image.src = `${baseUrl}/storage/v1/object/public/Foto/${encodedPath}`;
+          image.alt = photo.caption || `Foto pernikahan ${index + 1}`;
+          image.loading = "lazy";
+          image.decoding = "async";
+
+          // Jika URL foto tidak valid, hilangkan hanya foto yang gagal.
+          image.addEventListener("error", () => {
+            item.remove();
+            console.error("Foto galeri gagal dimuat:", photo.storage_path);
+          }, { once: true });
+
+          item.appendChild(image);
+
+          if (photo.caption) {
+            const caption = document.createElement("figcaption");
+            caption.className = "gallery-photo-caption";
+            caption.textContent = photo.caption;
+            item.appendChild(caption);
+          }
+
+          fragment.appendChild(item);
+        });
+
+        if (fragment.childNodes.length > 0) {
+          gallery.replaceChildren(fragment);
+        }
+      } catch (error) {
+        // Jangan mengganggu RSVP, buku tamu, atau data undangan bila galeri gagal.
+        console.error("Galeri foto belum dapat dimuat:", error);
+      }
+    })();
+  </script>
+
 </body>
 </html>
